@@ -51,6 +51,7 @@ class Settings {
   final bool showMusicTitle;
   final double textShadow;
   final double overlayScale;
+  final bool checkUpdatesOnStartup;
   final bool showDate;
   final DimMode dimMode;
   final double nightDim;
@@ -74,6 +75,7 @@ class Settings {
     this.showMusicTitle = false,
     this.textShadow = 0.8,
     this.overlayScale = 1.0,
+    this.checkUpdatesOnStartup = true,
     this.showDate = true,
     this.dimMode = DimMode.auto,
     this.nightDim = 0.45,
@@ -150,6 +152,7 @@ class Settings {
     bool? showMusicTitle,
     double? textShadow,
     double? overlayScale,
+    bool? checkUpdatesOnStartup,
     bool? showDate,
     DimMode? dimMode,
     double? nightDim,
@@ -175,6 +178,8 @@ class Settings {
       showMusicTitle: showMusicTitle ?? this.showMusicTitle,
       textShadow: textShadow ?? this.textShadow,
       overlayScale: overlayScale ?? this.overlayScale,
+      checkUpdatesOnStartup:
+          checkUpdatesOnStartup ?? this.checkUpdatesOnStartup,
       showDate: showDate ?? this.showDate,
       dimMode: dimMode ?? this.dimMode,
       nightDim: nightDim ?? this.nightDim,
@@ -200,6 +205,7 @@ class Settings {
         'showMusicTitle': showMusicTitle,
         'textShadow': textShadow,
         'overlayScale': overlayScale,
+        'checkUpdatesOnStartup': checkUpdatesOnStartup,
         'showDate': showDate,
         'dimMode': dimMode.name,
         'nightDim': nightDim,
@@ -228,6 +234,8 @@ class Settings {
         showMusicTitle: (j['showMusicTitle'] as bool?) ?? false,
         textShadow: (j['textShadow'] as num?)?.toDouble() ?? 0.8,
         overlayScale: (j['overlayScale'] as num?)?.toDouble() ?? 1.0,
+        checkUpdatesOnStartup:
+            (j['checkUpdatesOnStartup'] as bool?) ?? true,
         showDate: (j['showDate'] as bool?) ?? true,
         dimMode: _enumByName(DimMode.values, j['dimMode'], DimMode.auto),
         nightDim: (j['nightDim'] as num?)?.toDouble() ?? 0.45,

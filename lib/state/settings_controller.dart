@@ -41,6 +41,9 @@ class SettingsController extends ChangeNotifier {
   Future<void> setOverlayScale(double v) =>
       _update(_settings.copyWith(overlayScale: v));
 
+  Future<void> setCheckUpdatesOnStartup(bool v) =>
+      _update(_settings.copyWith(checkUpdatesOnStartup: v));
+
   Future<void> setShowDate(bool v) =>
       _update(_settings.copyWith(showDate: v));
 

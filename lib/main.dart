@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'services/system_status_service.dart';
+import 'services/update_service.dart';
 import 'services/window_service.dart';
 import 'state/settings_controller.dart';
 import 'state/weather_controller.dart';
@@ -108,15 +109,111 @@ class _FroggyAppState extends State<FroggyApp> {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.weather, required this.settings});
 
   final WeatherController weather;
   final SettingsController settings;
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _updates = UpdateService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+  }
+
+  @override
+  void dispose() {
+    _updates.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkForUpdate() async {
+    if (!widget.settings.settings.checkUpdatesOnStartup) return;
+    final version = await WindowService.appVersion();
+    if (version == null || version.isEmpty || !mounted) return;
+    final info = await _updates.check(version);
+    if (info == null || !info.updateAvailable || !mounted) return;
+    if (!widget.settings.settings.checkUpdatesOnStartup) return;
+    if (await _updates.skippedVersion() == info.latestVersion || !mounted) {
+      return;
+    }
+    _showUpdateDialog(info);
+  }
+
+  void _showUpdateDialog(UpdateInfo info) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Update available'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Froggy v${info.latestVersion} is available — '
+                'you have v${info.currentVersion}.'),
+            if (info.notes.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 160),
+                child: SingleChildScrollView(
+                  child: Text(
+                    info.notes,
+                    style: Theme.of(ctx).textTheme.bodySmall,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _updates.skipVersion(info.latestVersion);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Skip'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _startUpdate(info);
+            },
+            child: Text(info.apkUrl != null ? 'Update' : 'View'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _startUpdate(UpdateInfo info) async {
+    if (info.apkUrl == null) {
+      await WindowService.openUrl(info.releaseUrl);
+      return;
+    }
+    final ok = await WindowService.installUpdate(info.apkUrl!);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? 'Downloading update…' : 'Could not start the update'),
+      ),
+    );
+  }
+
   void _openSettings(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => SettingsScreen(settings: settings, weather: weather),
+      builder: (_) =>
+          SettingsScreen(settings: widget.settings, weather: widget.weather),
     ));
   }
 
@@ -136,9 +233,9 @@ class HomeScreen extends StatelessWidget {
       if (isSelect) {
         _openSettings(context);
       } else if (isScene) {
-        weather.cycleScene();
+        widget.weather.cycleScene();
       } else {
-        weather.refresh();
+        widget.weather.refresh();
       }
     }
     return KeyEventResult.handled;
@@ -146,6 +243,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final weather = widget.weather;
+    final settings = widget.settings;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Focus(

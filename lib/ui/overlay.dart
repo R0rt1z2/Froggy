@@ -75,9 +75,10 @@ class _WeatherOverlayState extends State<WeatherOverlay> {
       builder: (context, constraints) {
         final h = constraints.maxHeight;
         final scale = s.overlayScale;
+        final tempBase = (h * 0.075).clamp(16.0, tv ? 22.0 : 30.0);
         final timeSize = (h * 0.16).clamp(28.0, tv ? 46.0 : 72.0) * scale;
-        final tempSize = (h * 0.075).clamp(16.0, tv ? 22.0 : 30.0) * scale;
-        final summarySize = (tempSize * 0.7).clamp(12.0, 22.0 * scale);
+        final tempSize = tempBase * scale;
+        final summarySize = (tempBase * 0.7).clamp(12.0, 22.0) * scale;
         final pad = (h * 0.06).clamp(16.0, tv ? 22.0 : 32.0);
 
         return SafeArea(

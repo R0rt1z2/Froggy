@@ -22,4 +22,30 @@ class WindowService {
       await _channel.invokeMethod<void>('openHomeSettings');
     } catch (_) {}
   }
+
+  static Future<String?> appVersion() async {
+    try {
+      return await _channel.invokeMethod<String>('appVersion');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<bool> openUrl(String url) async {
+    try {
+      return await _channel.invokeMethod<bool>('openUrl', {'url': url}) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> installUpdate(String url) async {
+    try {
+      return await _channel
+              .invokeMethod<bool>('installUpdate', {'url': url}) ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
 }

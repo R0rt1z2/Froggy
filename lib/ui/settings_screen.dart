@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import '../models/settings.dart';
 import '../services/geocoding_service.dart';
 import '../services/system_status_service.dart';
+import '../services/update_service.dart';
 import '../services/window_service.dart';
 import '../state/settings_controller.dart';
 import '../state/weather_controller.dart';
@@ -376,6 +377,14 @@ class _Controls extends StatelessWidget {
               title: const Text('Add location'),
               onTap: () => _addLocation(context),
             ),
+            const Divider(),
+            _sectionTitle(context, 'About'),
+            SwitchListTile(
+              title: const Text('Check for updates on startup'),
+              value: s.checkUpdatesOnStartup,
+              onChanged: settings.setCheckUpdatesOnStartup,
+            ),
+            const _AboutSection(),
           ],
         );
       },
@@ -506,6 +515,130 @@ class _LauncherTileState extends State<_LauncherTile>
               onPressed: WindowService.openHomeSettings,
               child: Text('Set'),
             ),
+    );
+  }
+}
+
+class _AboutSection extends StatefulWidget {
+  const _AboutSection();
+
+  @override
+  State<_AboutSection> createState() => _AboutSectionState();
+}
+
+class _AboutSectionState extends State<_AboutSection> {
+  final _service = UpdateService();
+  String _version = '';
+  bool _checking = false;
+  String? _status;
+  UpdateInfo? _update;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  @override
+  void dispose() {
+    _service.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadVersion() async {
+    final v = await WindowService.appVersion();
+    if (mounted) setState(() => _version = v ?? '');
+  }
+
+  Future<void> _check() async {
+    setState(() {
+      _checking = true;
+      _status = null;
+      _update = null;
+    });
+    final info = await _service.check(_version.isEmpty ? '0.0.0' : _version);
+    if (!mounted) return;
+    setState(() {
+      _checking = false;
+      if (info == null) {
+        _status = 'Could not check — try again later';
+      } else if (info.updateAvailable) {
+        _status = 'Update available: v${info.latestVersion}';
+        _update = info;
+      } else {
+        _status = "You're on the latest version";
+      }
+    });
+  }
+
+  Future<void> _install(UpdateInfo info) async {
+    if (info.apkUrl == null) {
+      _open(info.releaseUrl);
+      return;
+    }
+    final ok = await WindowService.installUpdate(info.apkUrl!);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(ok ? 'Downloading update…' : "Couldn't start the update"),
+        ),
+      );
+    }
+  }
+
+  Future<void> _open(String url) async {
+    final ok = await WindowService.openUrl(url);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open the link on this device")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          leading: const SizedBox(
+            width: 40,
+            height: 40,
+            child: Image(image: AssetImage('assets/app_icon.png')),
+          ),
+          title: const Text('Froggy'),
+          subtitle: Text(
+            _version.isEmpty ? "Google's Weather Frog" : 'Version $_version',
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.system_update_outlined),
+          title: const Text('Check for updates'),
+          subtitle: _status == null ? null : Text(_status!),
+          trailing: _checking
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : null,
+          onTap: _checking ? null : _check,
+        ),
+        if (_update != null)
+          ListTile(
+            leading: const Icon(Icons.download_outlined),
+            title: Text(_update!.apkUrl != null
+                ? 'Download & install update'
+                : 'Get the latest release'),
+            onTap: () => _install(_update!),
+          ),
+        ListTile(
+          leading: const Icon(Icons.code),
+          title: const Text('Source code'),
+          subtitle: const Text('github.com/R0rt1z2/Froggy'),
+          onTap: () => _open(UpdateService.repoUrl),
+        ),
+      ],
     );
   }
 }
