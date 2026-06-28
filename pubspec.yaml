@@ -1,4 +1,4 @@
-name: Froggy
+name: froggy
 description: "Google's Weather Frog"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 2.0.0+2
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -31,11 +31,17 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flare_flutter: ^3.0.2
+  flare_flutter:
+    path: third_party/flare_flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+
+  http: ^1.2.2
+  geolocator: ^13.0.1
+  shared_preferences: ^2.3.2
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -48,7 +54,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
 
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: "^0.14.1"
 
 flutter_icons:
   android: "launcher_icon"
@@ -79,6 +85,7 @@ flutter:
   uses-material-design: true
 
   assets:
+      - assets/app_icon.png
       - assets/fields_day_cloudy_bg.webp
       - assets/fields_day_hazy_bg.webp
       - assets/fields_day_rainy_bg.webp

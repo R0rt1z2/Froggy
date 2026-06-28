@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screensaver (Daydream) metadata. A settingsActivity could be added later
+     to expose options from the system Screensaver settings screen. -->
+<dream xmlns:android="http://schemas.android.com/apk/res/android" />
