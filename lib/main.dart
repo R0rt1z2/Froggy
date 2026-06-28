@@ -1,139 +1,224 @@
 import 'package:flutter/material.dart';
-import 'package:flare_flutter/flare_actor.dart';
+import 'package:flutter/services.dart';
 
-import 'animation.dart';
+import 'services/window_service.dart';
+import 'state/settings_controller.dart';
+import 'state/weather_controller.dart';
+import 'ui/froggy_view.dart';
+import 'ui/settings_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const FroggyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+@pragma('vm:entry-point')
+void dreamMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  runApp(const FroggyApp(screensaver: true));
+}
+
+class FroggyApp extends StatefulWidget {
+  const FroggyApp({super.key, this.screensaver = false});
+
+  final bool screensaver;
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Google\'s Weather Frog (Froggy)',
-      home: AnimationScreen(),
-    );
-  }
+  State<FroggyApp> createState() => _FroggyAppState();
 }
 
-class AnimationScreen extends StatefulWidget {
-  @override
-  _AnimationScreenState createState() => _AnimationScreenState();
-}
-
-class _AnimationScreenState extends State<AnimationScreen> {
-  List<FilePair> filePairs = [
-    FilePair('fields_day_cloudy_bg.webp', 'fields_day_cloudy_frog.flr'),
-    FilePair('fields_day_hazy_bg.webp', 'fields_day_hazy_frog.flr'),
-    FilePair('fields_day_rainy_bg.webp', 'fields_day_rainy_frog.flr'),
-    FilePair('fields_day_snowy_bg.webp', 'fields_day_snowy_frog.flr'),
-    FilePair('fields_day_sunny_bg.webp', 'fields_day_sunny_frog.flr'),
-    FilePair('fields_morning_cloudy_bg.webp', 'fields_morning_cloudy_frog.flr'),
-    FilePair('fields_morning_hazy_bg.webp', 'fields_morning_hazy_frog.flr'),
-    FilePair('fields_day_rainy_bg.webp', 'fields_morning_rainy_frog.flr'), // Missing background
-    FilePair('fields_morning_snowy_bg.webp', 'fields_morning_snowy_frog.flr'),
-    FilePair('fields_morning_sunny_bg.webp', 'fields_morning_sunny_frog.flr'),
-    FilePair('fields_night_hazy_bg.webp', 'fields_night_cloudy_frog.flr'), // Missing background
-    FilePair('fields_night_hazy_bg.webp', 'fields_night_hazy_frog.flr'),
-    // FilePair('fields_night_rainy_bg.webp', 'fields_night_rainy_frog.flr'), // Broken animation
-    FilePair('fields_night_snowy_bg.webp', 'fields_night_snowy_frog.flr'),
-    FilePair('fields_night_sunny_bg.webp', 'fields_night_sunny_frog.flr'),
-    FilePair('fields_sunset_cloudy_bg.webp', 'fields_sunset_cloudy_frog.flr'),
-    FilePair('fields_sunset_hazy_bg.webp', 'fields_sunset_hazy_frog.flr'),
-    FilePair('fields_sunset_rainy_bg.webp', 'fields_sunset_rainy_frog.flr'),
-    FilePair('fields_sunset_snowy_bg.webp', 'fields_sunset_snowy_frog.flr'),
-    FilePair('fields_sunset_sunny_bg.webp', 'fields_sunset_sunny_frog.flr'),
-    FilePair('hill_day_cloudy_bg.webp', 'hill_day_cloudy_frog.flr'),
-    FilePair('hill_day_hazy_bg.webp', 'hill_day_hazy_frog.flr'),
-    FilePair('hill_day_rainy_bg.webp', 'hill_day_rainy_frog.flr'),
-    FilePair('hill_day_snowy_bg.webp', 'hill_day_snowy_frog.flr'),
-    FilePair('hill_day_sunny_bg.webp', 'hill_day_sunny_frog.flr'),
-    FilePair('hill_morning_cloudy_bg.webp', 'hill_morning_cloudy_frog.flr'),
-    FilePair('hill_morning_hazy_bg.webp', 'hill_morning_hazy_frog.flr'),
-    FilePair('hill_morning_rainy_bg.webp', 'hill_morning_rainy_frog.flr'),
-    FilePair('hill_morning_snowy_bg.webp', 'hill_morning_snowy_frog.flr'),
-    FilePair('hill_day_sunny_bg.webp', 'hill_morning_sunny_frog.flr'), // Missing background
-    FilePair('hill_night_cloudy_bg.webp', 'hill_night_cloudy_frog.flr'),
-    FilePair('hill_night_hazy_bg.webp', 'hill_night_hazy_frog.flr'),
-    FilePair('hill_night_rainy_bg.webp', 'hill_night_rainy_frog.flr'),
-    FilePair('hill_night_snowy_bg.webp', 'hill_night_snowy_frog.flr'),
-    FilePair('hill_night_sunny_bg.webp', 'hill_night_sunny_frog.flr'),
-    FilePair('hill_sunset_sunny_bg.webp', 'hill_sunset_sunny_frog.flr'),
-    FilePair('mushroom_day_cloudy_bg.webp', 'mushroom_day_cloudy_frog.flr'),
-    FilePair('mushroom_day_hazy_bg.webp', 'mushroom_day_hazy_frog.flr'),
-    FilePair('mushroom_day_rainy_bg.webp', 'mushroom_day_rainy_frog.flr'),
-    FilePair('mushroom_day_snowy_bg.webp', 'mushroom_day_snowy_frog.flr'),
-    FilePair('mushroom_day_sunny_bg.webp', 'mushroom_day_sunny_frog.flr'),
-    FilePair('mushroom_morning_cloudy_bg.webp', 'mushroom_morning_cloudy_frog.flr'),
-    FilePair('mushroom_morning_hazy_bg.webp', 'mushroom_morning_hazy_frog.flr'),
-    FilePair('mushroom_morning_rainy_bg.webp', 'mushroom_morning_rainy_frog.flr'),
-    FilePair('mushroom_morning_snowy_bg.webp', 'mushroom_morning_snowy_frog.flr'),
-    FilePair('mushroom_morning_sunny_bg.webp', 'mushroom_morning_sunny_frog.flr'),
-    FilePair('mushroom_night_cloudy_bg.webp', 'mushroom_night_cloudy_frog.flr'),
-    FilePair('mushroom_night_hazy_bg.webp', 'mushroom_night_hazy_frog.flr'),
-    FilePair('mushroom_night_rainy_bg.webp', 'mushroom_night_rainy_frog.flr'),
-    FilePair('mushroom_night_snowy_bg.webp', 'mushroom_night_snowy_frog.flr'),
-    FilePair('mushroom_night_sunny_bg.webp', 'mushroom_night_sunny_frog.flr'),
-    FilePair('mushroom_sunset_cloudy_bg.webp', 'mushroom_sunset_cloudy_frog.flr'),
-    FilePair('mushroom_sunset_hazy_bg.webp', 'mushroom_sunset_hazy_frog.flr'),
-    FilePair('mushroom_sunset_rainy_bg.webp', 'mushroom_sunset_rainy_frog.flr'),
-    FilePair('mushroom_sunset_snowy_bg.webp', 'mushroom_sunset_snowy_frog.flr'),
-    FilePair('mushroom_sunset_sunny_bg.webp', 'mushroom_sunset_sunny_frog.flr'),
-  ];
-
-  int currentIndex = 0;
-  late List<FroggyAnimation> froggyAnimations;
-  late FroggyAnimation froggyAnimation;
+class _FroggyAppState extends State<FroggyApp> {
+  late final SettingsController _settings;
+  late final WeatherController _weather;
 
   @override
   void initState() {
     super.initState();
-    froggyAnimations = filePairs.map((pair) {
-      return FroggyAnimation(backgroundFile: pair.backgroundFile, animationFile: pair.animationFile);
-    }).toList();
+    _settings = SettingsController();
+    _weather = WeatherController(
+      settings: _settings,
+      allowLocationPrompt: !widget.screensaver,
+    );
+    _settings.addListener(_applyWakelock);
+    _boot();
 
-    froggyAnimation = froggyAnimations[currentIndex];
+    SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
-  void _nextAnimation() {
-    setState(() {
-      currentIndex = (currentIndex + 1) % froggyAnimations.length;
-      froggyAnimation = froggyAnimations[currentIndex];
-    });
+  void _applyWakelock() {
+    if (widget.screensaver) return;
+    WindowService.setKeepAwake(_settings.settings.kioskMode);
   }
 
-  void _previousAnimation() {
-    setState(() {
-      currentIndex = (currentIndex - 1) % froggyAnimations.length;
-      froggyAnimation = froggyAnimations[currentIndex];
-    });
+  Future<void> _boot() async {
+    await _settings.load();
+    await _weather.init();
+  }
+
+  @override
+  void dispose() {
+    _settings.removeListener(_applyWakelock);
+    if (!widget.screensaver) WindowService.setKeepAwake(false);
+    _weather.dispose();
+    _settings.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "Google's Weather Frog (Froggy)",
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(useMaterial3: true),
+      home: widget.screensaver
+          ? ScreensaverScreen(weather: _weather, settings: _settings)
+          : HomeScreen(weather: _weather, settings: _settings),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key, required this.weather, required this.settings});
+
+  final WeatherController weather;
+  final SettingsController settings;
+
+  void _openSettings(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => SettingsScreen(settings: settings, weather: weather),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          froggyAnimation.getBackground(),
-          froggyAnimation.getAnimation(),
-        ],
+      backgroundColor: Colors.black,
+      body: ListenableBuilder(
+        listenable: Listenable.merge([weather, settings]),
+        builder: (context, _) {
+          if (!weather.ready) return const SplashScreen();
+          final kiosk = settings.settings.kioskMode;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              GestureDetector(
+                onTap: weather.cycleScene,
+                onDoubleTap: weather.refresh,
+                onLongPress: () => _openSettings(context),
+                child: RepaintBoundary(
+                  child: FroggyView(
+                    scene: weather.scene,
+                    weather: weather.weather,
+                    settings: settings.settings,
+                    locationName: weather.locationName,
+                  ),
+                ),
+              ),
+              if (!kiosk)
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: IconButton(
+                        icon: const Icon(Icons.settings),
+                        color: Colors.white,
+                        iconSize: 28,
+                        tooltip: 'Settings',
+                        onPressed: () => _openSettings(context),
+                      ),
+                    ),
+                  ),
+                ),
+              if (weather.loading && !kiosk)
+                const Positioned(
+                  top: 10,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+    );
+  }
+}
+
+class ScreensaverScreen extends StatelessWidget {
+  const ScreensaverScreen({
+    super.key,
+    required this.weather,
+    required this.settings,
+  });
+
+  final WeatherController weather;
+  final SettingsController settings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: ListenableBuilder(
+        listenable: Listenable.merge([weather, settings]),
+        builder: (context, _) {
+          if (!weather.ready) return const SplashScreen();
+          return RepaintBoundary(
+            child: FroggyView(
+              scene: weather.scene,
+              weather: weather.weather,
+              settings: settings.settings,
+              locationName: weather.locationName,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      alignment: Alignment.center,
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          FloatingActionButton(
-            onPressed: _previousAnimation,
-            tooltip: 'Previous Animation',
-            child: Icon(Icons.arrow_back),
+          SizedBox(
+            width: 112,
+            height: 112,
+            child: Image(
+              image: AssetImage('assets/app_icon.png'),
+              filterQuality: FilterQuality.medium,
+            ),
           ),
-          SizedBox(width: 10), // Space between buttons
-          FloatingActionButton(
-            onPressed: _nextAnimation,
-            tooltip: 'Next Animation',
-            child: Icon(Icons.arrow_forward),
+          SizedBox(height: 24),
+          SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white30,
+            ),
           ),
         ],
       ),
