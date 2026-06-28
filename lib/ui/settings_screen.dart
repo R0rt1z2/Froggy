@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../models/settings.dart';
 import '../services/geocoding_service.dart';
@@ -23,7 +24,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _showPreview = true;
+  bool? _showPreview;
 
   Future<void> _confirmReset() async {
     final ok = await showDialog<bool>(
@@ -49,8 +50,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTv =
+        MediaQuery.navigationModeOf(context) == NavigationMode.directional;
+    final showPreview = _showPreview ?? !isTv;
     final preview = _Preview(settings: widget.settings, weather: widget.weather);
-    final controls = _Controls(settings: widget.settings);
+    final controls = _Controls(settings: widget.settings, isTv: isTv);
 
     return Scaffold(
       appBar: AppBar(
@@ -62,16 +66,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: _confirmReset,
           ),
           IconButton(
-            icon: Icon(_showPreview ? Icons.visibility_off : Icons.visibility),
-            tooltip: _showPreview ? 'Hide preview' : 'Show preview',
-            onPressed: () => setState(() => _showPreview = !_showPreview),
+            autofocus: true,
+            icon: Icon(showPreview ? Icons.visibility_off : Icons.visibility),
+            tooltip: showPreview ? 'Hide preview' : 'Show preview',
+            onPressed: () => setState(() => _showPreview = !showPreview),
           ),
         ],
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, c) {
-            if (!_showPreview) return controls;
+            if (!showPreview) return controls;
             if (c.maxWidth > c.maxHeight) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -126,9 +131,10 @@ class _Preview extends StatelessWidget {
 }
 
 class _Controls extends StatelessWidget {
-  const _Controls({required this.settings});
+  const _Controls({required this.settings, this.isTv = false});
 
   final SettingsController settings;
+  final bool isTv;
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +144,8 @@ class _Controls extends StatelessWidget {
         final s = settings.settings;
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 8),
+          scrollCacheExtent:
+              isTv ? const ScrollCacheExtent.viewport(6) : null,
           children: [
             LayoutBuilder(
               builder: (context, c) {
@@ -322,39 +330,29 @@ class _Controls extends StatelessWidget {
             const _LauncherTile(),
             const Divider(),
             _sectionTitle(context, 'Location'),
-            RadioGroup<String>(
-              groupValue: s.locationMode == LocationMode.automatic
-                  ? 'auto'
-                  : (s.selected?.id ?? 'auto'),
-              onChanged: (v) {
-                if (v == null) return;
-                if (v == 'auto') {
-                  settings.setLocationMode(LocationMode.automatic);
-                } else {
-                  settings.selectLocation(v);
-                }
-              },
-              child: Column(
-                children: [
-                  const RadioListTile<String>(
-                    title: Text('Automatic'),
-                    subtitle: Text('Detect from network / GPS'),
-                    value: 'auto',
-                  ),
-                  for (final loc in s.savedLocations)
-                    RadioListTile<String>(
-                      title: Text(loc.name),
-                      subtitle: loc.region == null ? null : Text(loc.region!),
-                      value: loc.id,
-                      secondary: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: 'Remove',
-                        onPressed: () => settings.removeLocation(loc.id),
-                      ),
-                    ),
-                ],
-              ),
+            ListTile(
+              leading: Icon(s.locationMode == LocationMode.automatic
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked),
+              title: const Text('Automatic'),
+              subtitle: const Text('Detect from network / GPS'),
+              onTap: () => settings.setLocationMode(LocationMode.automatic),
             ),
+            for (final loc in s.savedLocations)
+              ListTile(
+                leading: Icon(s.locationMode == LocationMode.manual &&
+                        s.selected?.id == loc.id
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked),
+                title: Text(loc.name),
+                subtitle: loc.region == null ? null : Text(loc.region!),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Remove',
+                  onPressed: () => settings.removeLocation(loc.id),
+                ),
+                onTap: () => settings.selectLocation(loc.id),
+              ),
             ListTile(
               leading: const Icon(Icons.add_location_alt_outlined),
               title: const Text('Add location'),
@@ -634,9 +632,15 @@ class _AddLocationScreenState extends State<_AddLocationScreen> {
               ),
             Expanded(
               child: ListView(
+                scrollCacheExtent:
+                    MediaQuery.navigationModeOf(context) ==
+                            NavigationMode.directional
+                        ? const ScrollCacheExtent.viewport(6)
+                        : null,
                 children: [
                   for (final r in _results)
                     ListTile(
+                      autofocus: r == _results.first,
                       title: Text(r.name),
                       subtitle: r.region == null ? null : Text(r.region!),
                       onTap: () {

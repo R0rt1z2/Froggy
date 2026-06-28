@@ -20,9 +20,14 @@ class LocationService {
 
   final http.Client _client;
 
-  Future<ResolvedLocation?> current({bool allowPrompt = true}) async {
-    final device = await _deviceLocation(allowPrompt: allowPrompt);
-    if (device != null) return ResolvedLocation(device, null);
+  Future<ResolvedLocation?> current({
+    bool allowPrompt = true,
+    bool useDevice = true,
+  }) async {
+    if (useDevice) {
+      final device = await _deviceLocation(allowPrompt: allowPrompt);
+      if (device != null) return ResolvedLocation(device, null);
+    }
     return _ipLocation();
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'services/system_status_service.dart';
 import 'services/window_service.dart';
 import 'state/settings_controller.dart';
 import 'state/weather_controller.dart';
@@ -31,6 +32,7 @@ class FroggyApp extends StatefulWidget {
 class _FroggyAppState extends State<FroggyApp> {
   late final SettingsController _settings;
   late final WeatherController _weather;
+  bool _isTv = false;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _FroggyAppState extends State<FroggyApp> {
       allowLocationPrompt: !widget.screensaver,
     );
     _settings.addListener(_applyWakelock);
+    _detectTv();
     _boot();
 
     SystemChrome.setPreferredOrientations(const [
@@ -54,6 +57,11 @@ class _FroggyAppState extends State<FroggyApp> {
   void _applyWakelock() {
     if (widget.screensaver) return;
     WindowService.setKeepAwake(_settings.settings.kioskMode);
+  }
+
+  Future<void> _detectTv() async {
+    final tv = await SystemStatusService().isTelevision();
+    if (mounted && tv) setState(() => _isTv = tv);
   }
 
   Future<void> _boot() async {
@@ -76,6 +84,23 @@ class _FroggyAppState extends State<FroggyApp> {
       title: "Google's Weather Frog (Froggy)",
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
+      builder: (context, child) {
+        Widget result = Shortcuts(
+          shortcuts: const <ShortcutActivator, Intent>{
+            SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
+          },
+          child: child!,
+        );
+        if (_isTv) {
+          result = MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(navigationMode: NavigationMode.directional),
+            child: result,
+          );
+        }
+        return result;
+      },
       home: widget.screensaver
           ? ScreensaverScreen(weather: _weather, settings: _settings)
           : HomeScreen(weather: _weather, settings: _settings),
@@ -95,11 +120,38 @@ class HomeScreen extends StatelessWidget {
     ));
   }
 
+  KeyEventResult _handleKey(BuildContext context, KeyEvent event) {
+    final k = event.logicalKey;
+    final isSelect = k == LogicalKeyboardKey.select ||
+        k == LogicalKeyboardKey.enter ||
+        k == LogicalKeyboardKey.numpadEnter ||
+        k == LogicalKeyboardKey.gameButtonA ||
+        k == LogicalKeyboardKey.contextMenu;
+    final isScene = k == LogicalKeyboardKey.arrowLeft ||
+        k == LogicalKeyboardKey.arrowRight;
+    final isRefresh = k == LogicalKeyboardKey.arrowUp ||
+        k == LogicalKeyboardKey.arrowDown;
+    if (!isSelect && !isScene && !isRefresh) return KeyEventResult.ignored;
+    if (event is KeyDownEvent) {
+      if (isSelect) {
+        _openSettings(context);
+      } else if (isScene) {
+        weather.cycleScene();
+      } else {
+        weather.refresh();
+      }
+    }
+    return KeyEventResult.handled;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: ListenableBuilder(
+      body: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) => _handleKey(context, event),
+        child: ListenableBuilder(
         listenable: Listenable.merge([weather, settings]),
         builder: (context, _) {
           if (!weather.ready) return const SplashScreen();
@@ -155,6 +207,7 @@ class HomeScreen extends StatelessWidget {
             ],
           );
         },
+        ),
       ),
     );
   }

@@ -34,8 +34,10 @@ class FroggyView extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = scene;
     final h = MediaQuery.sizeOf(context).height;
-    final statusIcon = (h * 0.05).clamp(16.0, 26.0);
-    final statusPad = (h * 0.06).clamp(16.0, 32.0);
+    final tv =
+        MediaQuery.navigationModeOf(context) == NavigationMode.directional;
+    final statusIcon = (h * 0.05).clamp(16.0, tv ? 20.0 : 26.0);
+    final statusPad = (h * 0.06).clamp(16.0, tv ? 18.0 : 32.0);
     final shadows = settings.textShadows;
     final dayPart = weather?.dayPart ?? dayPartFor(DateTime.now(), null, null);
     final nightFactor = dayPart == DayPart.night

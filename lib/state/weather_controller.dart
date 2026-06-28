@@ -7,6 +7,7 @@ import '../models/weather.dart';
 import '../services/asset_catalog.dart';
 import '../services/cache.dart';
 import '../services/location_service.dart';
+import '../services/system_status_service.dart';
 import '../services/weather_service.dart';
 import 'settings_controller.dart';
 
@@ -48,6 +49,7 @@ class WeatherController extends ChangeNotifier {
   String _lastLocationKey = 'auto';
   String _lastIntervals = '';
   bool _started = false;
+  bool _useDeviceLocation = true;
 
   WeatherData? _data;
   SceneAssets? _scene;
@@ -67,6 +69,7 @@ class WeatherController extends ChangeNotifier {
 
   Future<void> init() async {
     _catalog ??= await AssetCatalog.load();
+    _useDeviceLocation = !await SystemStatusService().isTelevision();
     _data = await _cache.loadWeather();
     _apply();
 
@@ -128,7 +131,10 @@ class WeatherController extends ChangeNotifier {
         return ResolvedLocation(Coords(sel.lat, sel.lon), sel.name);
       }
     }
-    return _location.current(allowPrompt: allowLocationPrompt);
+    return _location.current(
+      allowPrompt: allowLocationPrompt,
+      useDevice: _useDeviceLocation,
+    );
   }
 
   void _onSettingsChanged() {

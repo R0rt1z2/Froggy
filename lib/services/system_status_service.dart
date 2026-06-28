@@ -42,6 +42,14 @@ class SystemStatusService {
     }
   }
 
+  Future<bool> isTelevision() async {
+    try {
+      return await _channel.invokeMethod<bool>('isTelevision') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> hasNotificationAccess() async {
     try {
       return await _channel.invokeMethod<bool>('hasNotificationAccess') ??

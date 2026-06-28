@@ -1,10 +1,13 @@
 package com.r0rt1z2.froggy
 
+import android.app.UiModeManager
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.media.MediaMetadata
 import android.media.session.MediaSessionManager
@@ -25,6 +28,7 @@ object SystemStatus {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "get" -> result.success(snapshot(appCtx))
+                    "isTelevision" -> result.success(isTelevision(appCtx))
                     "hasNotificationAccess" ->
                         result.success(hasNotificationAccess(appCtx))
                     "openNotificationAccess" -> {
@@ -108,6 +112,18 @@ object SystemStatus {
         out["musicTitle"] = musicTitle
 
         return out
+    }
+
+    private fun isTelevision(context: Context): Boolean {
+        return try {
+            val ui = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+            if (ui.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) return true
+            val pm = context.packageManager
+            pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
+                pm.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun hasNotificationAccess(context: Context): Boolean {

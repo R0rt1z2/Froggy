@@ -68,14 +68,16 @@ class _WeatherOverlayState extends State<WeatherOverlay> {
     final summaryColor =
         stale ? Colors.white.withValues(alpha: 0.45) : Colors.white70;
     final shadow = s.textShadows;
+    final tv =
+        MediaQuery.navigationModeOf(context) == NavigationMode.directional;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final h = constraints.maxHeight;
-        final timeSize = (h * 0.16).clamp(28.0, 72.0);
-        final tempSize = (h * 0.075).clamp(16.0, 30.0);
+        final timeSize = (h * 0.16).clamp(28.0, tv ? 46.0 : 72.0);
+        final tempSize = (h * 0.075).clamp(16.0, tv ? 22.0 : 30.0);
         final summarySize = (tempSize * 0.7).clamp(12.0, 22.0);
-        final pad = (h * 0.06).clamp(16.0, 32.0);
+        final pad = (h * 0.06).clamp(16.0, tv ? 22.0 : 32.0);
 
         return SafeArea(
           child: Align(
