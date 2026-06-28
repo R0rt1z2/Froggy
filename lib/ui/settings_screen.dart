@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/settings.dart';
 import '../services/geocoding_service.dart';
 import '../services/system_status_service.dart';
+import '../services/window_service.dart';
 import '../state/settings_controller.dart';
 import '../state/weather_controller.dart';
 import 'froggy_view.dart';
@@ -317,6 +318,9 @@ class _Controls extends StatelessWidget {
               onChanged: settings.setKioskMode,
             ),
             const Divider(),
+            _sectionTitle(context, 'Launcher'),
+            const _LauncherTile(),
+            const Divider(),
             _sectionTitle(context, 'Location'),
             RadioGroup<String>(
               groupValue: s.locationMode == LocationMode.automatic
@@ -436,6 +440,58 @@ class _Controls extends StatelessWidget {
               ),
         ),
       );
+}
+
+class _LauncherTile extends StatefulWidget {
+  const _LauncherTile();
+
+  @override
+  State<_LauncherTile> createState() => _LauncherTileState();
+}
+
+class _LauncherTileState extends State<_LauncherTile>
+    with WidgetsBindingObserver {
+  bool _isDefault = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _check();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _check();
+  }
+
+  Future<void> _check() async {
+    final d = await WindowService.isDefaultHome();
+    if (mounted) setState(() => _isDefault = d);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(_isDefault ? Icons.home : Icons.home_outlined),
+      title: const Text('Home app'),
+      subtitle: Text(_isDefault
+          ? 'Froggy is your default home app'
+          : 'Show Froggy on the home screen, replacing your launcher'),
+      trailing: _isDefault
+          ? null
+          : const TextButton(
+              onPressed: WindowService.openHomeSettings,
+              child: Text('Set'),
+            ),
+    );
+  }
 }
 
 class _NotificationAccessTile extends StatefulWidget {
