@@ -202,6 +202,24 @@ class _Controls extends StatelessWidget {
               ),
             ),
             const Divider(),
+            _sectionTitle(context, 'Overlay size'),
+            ListTile(
+              dense: true,
+              title: const Text('Clock & text size'),
+              trailing: Text('${(s.overlayScale * 100).round()}%'),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Slider(
+                value: s.overlayScale,
+                min: 0.5,
+                max: 1.5,
+                divisions: 10,
+                label: '${(s.overlayScale * 100).round()}%',
+                onChanged: settings.setOverlayScale,
+              ),
+            ),
+            const Divider(),
             _sectionTitle(context, 'Text shadow'),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

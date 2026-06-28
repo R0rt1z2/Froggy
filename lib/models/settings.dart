@@ -50,6 +50,7 @@ class Settings {
   final bool showLocation;
   final bool showMusicTitle;
   final double textShadow;
+  final double overlayScale;
   final bool showDate;
   final DimMode dimMode;
   final double nightDim;
@@ -72,6 +73,7 @@ class Settings {
     this.showLocation = false,
     this.showMusicTitle = false,
     this.textShadow = 0.8,
+    this.overlayScale = 1.0,
     this.showDate = true,
     this.dimMode = DimMode.auto,
     this.nightDim = 0.45,
@@ -147,6 +149,7 @@ class Settings {
     bool? showLocation,
     bool? showMusicTitle,
     double? textShadow,
+    double? overlayScale,
     bool? showDate,
     DimMode? dimMode,
     double? nightDim,
@@ -171,6 +174,7 @@ class Settings {
       showLocation: showLocation ?? this.showLocation,
       showMusicTitle: showMusicTitle ?? this.showMusicTitle,
       textShadow: textShadow ?? this.textShadow,
+      overlayScale: overlayScale ?? this.overlayScale,
       showDate: showDate ?? this.showDate,
       dimMode: dimMode ?? this.dimMode,
       nightDim: nightDim ?? this.nightDim,
@@ -195,6 +199,7 @@ class Settings {
         'showLocation': showLocation,
         'showMusicTitle': showMusicTitle,
         'textShadow': textShadow,
+        'overlayScale': overlayScale,
         'showDate': showDate,
         'dimMode': dimMode.name,
         'nightDim': nightDim,
@@ -222,6 +227,7 @@ class Settings {
         showLocation: (j['showLocation'] as bool?) ?? false,
         showMusicTitle: (j['showMusicTitle'] as bool?) ?? false,
         textShadow: (j['textShadow'] as num?)?.toDouble() ?? 0.8,
+        overlayScale: (j['overlayScale'] as num?)?.toDouble() ?? 1.0,
         showDate: (j['showDate'] as bool?) ?? true,
         dimMode: _enumByName(DimMode.values, j['dimMode'], DimMode.auto),
         nightDim: (j['nightDim'] as num?)?.toDouble() ?? 0.45,
