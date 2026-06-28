@@ -77,7 +77,7 @@ class Settings {
     this.overlayScale = 1.0,
     this.checkUpdatesOnStartup = true,
     this.showDate = true,
-    this.dimMode = DimMode.auto,
+    this.dimMode = DimMode.off,
     this.nightDim = 0.45,
     this.dimStart = 1320,
     this.dimEnd = 420,
@@ -237,7 +237,7 @@ class Settings {
         checkUpdatesOnStartup:
             (j['checkUpdatesOnStartup'] as bool?) ?? true,
         showDate: (j['showDate'] as bool?) ?? true,
-        dimMode: _enumByName(DimMode.values, j['dimMode'], DimMode.auto),
+        dimMode: _enumByName(DimMode.values, j['dimMode'], DimMode.off),
         nightDim: (j['nightDim'] as num?)?.toDouble() ?? 0.45,
         dimStart: (j['dimStart'] as num?)?.toInt() ?? 1320,
         dimEnd: (j['dimEnd'] as num?)?.toInt() ?? 420,
