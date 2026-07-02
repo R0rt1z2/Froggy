@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flare_flutter/flare_actor.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../models/settings.dart';
@@ -132,17 +133,19 @@ class FroggyView extends StatelessWidget {
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: StatusBar(
-                                iconSize: statusIcon,
-                                showMusicTitle: settings.showMusicTitle,
-                                showWifi:
-                                    settings.showStatus && settings.showWifi,
-                                showBluetooth: settings.showStatus &&
-                                    settings.showBluetooth,
-                                showMusic:
-                                    settings.showStatus && settings.showMusic,
-                                shadows: shadows,
-                              ),
+                              child: kIsWeb
+                                  ? const SizedBox.shrink()
+                                  : StatusBar(
+                                      iconSize: statusIcon,
+                                      showMusicTitle: settings.showMusicTitle,
+                                      showWifi: settings.showStatus &&
+                                          settings.showWifi,
+                                      showBluetooth: settings.showStatus &&
+                                          settings.showBluetooth,
+                                      showMusic: settings.showStatus &&
+                                          settings.showMusic,
+                                      shadows: shadows,
+                                    ),
                             ),
                           ),
                           if (showLoc)

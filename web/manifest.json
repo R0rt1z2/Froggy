@@ -1,12 +1,12 @@
 {
-    "name": "froggy",
-    "short_name": "froggy",
+    "name": "Froggy",
+    "short_name": "Froggy",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#000000",
+    "theme_color": "#4CAF50",
+    "description": "Froggy.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

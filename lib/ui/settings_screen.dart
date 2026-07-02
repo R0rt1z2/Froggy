@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -5,6 +6,7 @@ import '../models/settings.dart';
 import '../services/geocoding_service.dart';
 import '../services/system_status_service.dart';
 import '../services/update_service.dart';
+import '../services/web_launch.dart';
 import '../services/window_service.dart';
 import '../state/settings_controller.dart';
 import '../state/weather_controller.dart';
@@ -300,6 +302,7 @@ class _Controls extends StatelessWidget {
                 onTap: () => _pickTime(context, s.dimEnd, settings.setDimEnd),
               ),
             ],
+            if (!kIsWeb) ...[
             const Divider(),
             _sectionTitle(context, 'Status icons'),
             SwitchListTile(
@@ -347,6 +350,7 @@ class _Controls extends StatelessWidget {
             const Divider(),
             _sectionTitle(context, 'Launcher'),
             const _LauncherTile(),
+            ],
             const Divider(),
             _sectionTitle(context, 'Location'),
             ListTile(
@@ -379,11 +383,12 @@ class _Controls extends StatelessWidget {
             ),
             const Divider(),
             _sectionTitle(context, 'About'),
-            SwitchListTile(
-              title: const Text('Check for updates on startup'),
-              value: s.checkUpdatesOnStartup,
-              onChanged: settings.setCheckUpdatesOnStartup,
-            ),
+            if (!kIsWeb)
+              SwitchListTile(
+                title: const Text('Check for updates on startup'),
+                value: s.checkUpdatesOnStartup,
+                onChanged: settings.setCheckUpdatesOnStartup,
+              ),
             const _AboutSection(),
           ],
         );
@@ -588,7 +593,9 @@ class _AboutSectionState extends State<_AboutSection> {
   }
 
   Future<void> _open(String url) async {
-    final ok = await WindowService.openUrl(url);
+    final ok = kIsWeb
+        ? await openExternalUrl(url)
+        : await WindowService.openUrl(url);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Couldn't open the link on this device")),
@@ -611,27 +618,29 @@ class _AboutSectionState extends State<_AboutSection> {
             _version.isEmpty ? "Google's Weather Frog" : 'Version $_version',
           ),
         ),
-        ListTile(
-          leading: const Icon(Icons.system_update_outlined),
-          title: const Text('Check for updates'),
-          subtitle: _status == null ? null : Text(_status!),
-          trailing: _checking
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : null,
-          onTap: _checking ? null : _check,
-        ),
-        if (_update != null)
+        if (!kIsWeb) ...[
           ListTile(
-            leading: const Icon(Icons.download_outlined),
-            title: Text(_update!.apkUrl != null
-                ? 'Download & install update'
-                : 'Get the latest release'),
-            onTap: () => _install(_update!),
+            leading: const Icon(Icons.system_update_outlined),
+            title: const Text('Check for updates'),
+            subtitle: _status == null ? null : Text(_status!),
+            trailing: _checking
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+            onTap: _checking ? null : _check,
           ),
+          if (_update != null)
+            ListTile(
+              leading: const Icon(Icons.download_outlined),
+              title: Text(_update!.apkUrl != null
+                  ? 'Download & install update'
+                  : 'Get the latest release'),
+              onTap: () => _install(_update!),
+            ),
+        ],
         ListTile(
           leading: const Icon(Icons.code),
           title: const Text('Source code'),
