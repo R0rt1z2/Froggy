@@ -11,6 +11,8 @@ import '../services/system_status_service.dart';
 import '../services/weather_service.dart';
 import 'settings_controller.dart';
 
+const Object _unset = Object();
+
 class WeatherController extends ChangeNotifier {
   WeatherController({
     AssetCatalog? catalog,
@@ -49,7 +51,9 @@ class WeatherController extends ChangeNotifier {
   String _lastLocationKey = 'auto';
   String _lastIntervals = '';
   bool _started = false;
+  bool _active = true;
   bool _useDeviceLocation = true;
+  List<Object?> _lastPublished = const [_unset];
 
   WeatherData? _data;
   SceneAssets? _scene;
@@ -81,8 +85,7 @@ class WeatherController extends ChangeNotifier {
     _started = true;
     _lastLocationKey = _settings?.settings.locationKey ?? 'auto';
     _lastIntervals = _intervalsKey();
-    _tick = Timer.periodic(const Duration(minutes: 1), (_) => _apply());
-    _setupPeriodics();
+    _startTimers();
     await refresh();
   }
 
@@ -91,9 +94,23 @@ class WeatherController extends ChangeNotifier {
     return '${s?.refreshMinutes}:${s?.rotateMinutes}';
   }
 
-  void _setupPeriodics() {
-    _refreshTimer?.cancel();
-    _sceneTimer?.cancel();
+  void setActive(bool active) {
+    if (_active == active) return;
+    _active = active;
+    if (!_started) return;
+    if (!active) {
+      _stopTimers();
+      return;
+    }
+    _startTimers();
+    _apply();
+    if (_data?.isStale ?? true) refresh();
+  }
+
+  void _startTimers() {
+    _stopTimers();
+    if (!_active) return;
+    _tick = Timer.periodic(const Duration(minutes: 1), (_) => _apply());
     final rm = _settings?.settings.refreshMinutes ?? refreshInterval.inMinutes;
     final refreshDur = rm > 0 ? Duration(minutes: rm) : refreshInterval;
     _refreshTimer = Timer.periodic(refreshDur, (_) => refresh());
@@ -103,10 +120,19 @@ class WeatherController extends ChangeNotifier {
     }
   }
 
+  void _stopTimers() {
+    _tick?.cancel();
+    _tick = null;
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    _sceneTimer?.cancel();
+    _sceneTimer = null;
+  }
+
   Future<void> refresh() async {
     _catalog ??= await AssetCatalog.load();
     _loading = true;
-    notifyListeners();
+    _publish();
     try {
       final resolved = await _resolveLocation();
       if (resolved != null) {
@@ -155,7 +181,7 @@ class WeatherController extends ChangeNotifier {
     final iv = _intervalsKey();
     if (_started && iv != _lastIntervals) {
       _lastIntervals = iv;
-      _setupPeriodics();
+      _startTimers();
     }
   }
 
@@ -182,15 +208,36 @@ class WeatherController extends ChangeNotifier {
     if (_scene?.background != next.background || _scene?.frog != next.frog) {
       _scene = next;
     }
+    _publish();
+  }
+
+  List<Object?> _snapshot() => [
+        _scene?.background,
+        _scene?.frog,
+        _loading,
+        _locationName,
+        _error,
+        _locationDenied,
+        _usingApproximateLocation,
+        _data?.weatherCode,
+        _data?.temperatureC,
+        _data?.tempMinC,
+        _data?.tempMaxC,
+        _data?.utcOffsetSeconds,
+        _data?.isStale,
+      ];
+
+  void _publish() {
+    final next = _snapshot();
+    if (listEquals(_lastPublished, next)) return;
+    _lastPublished = next;
     notifyListeners();
   }
 
   @override
   void dispose() {
     _settings?.removeListener(_onSettingsChanged);
-    _refreshTimer?.cancel();
-    _tick?.cancel();
-    _sceneTimer?.cancel();
+    _stopTimers();
     _weather.dispose();
     _location.dispose();
     super.dispose();

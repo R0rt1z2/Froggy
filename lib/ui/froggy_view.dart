@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../models/settings.dart';
 import '../models/weather.dart';
 import '../services/asset_catalog.dart';
+import 'foreground.dart';
 import 'overlay.dart';
 import 'status_bar.dart';
 
@@ -30,6 +31,17 @@ class FroggyView extends StatelessWidget {
   final bool showTopBar;
 
   static const _animationName = 'Hero-Action';
+
+  static const _maxDecodeSize = 2048;
+  static const _decodeBucket = 256;
+
+  static int _decodeWidth(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final needed =
+        max(size.width, size.height) * MediaQuery.devicePixelRatioOf(context);
+    final bucketed = (needed / _decodeBucket).ceil() * _decodeBucket;
+    return bucketed.clamp(_decodeBucket, _maxDecodeSize);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,20 +66,29 @@ class FroggyView extends StatelessWidget {
         children: [
           if (s != null)
             Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 600),
-                child: SizedBox.expand(
-                  key: ValueKey(s.background),
-                  child: Image.asset(s.background, fit: BoxFit.cover),
+              child: RepaintBoundary(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 600),
+                  child: SizedBox.expand(
+                    key: ValueKey(s.background),
+                    child: Image.asset(
+                      s.background,
+                      fit: BoxFit.cover,
+                      cacheWidth: _decodeWidth(context),
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
                 ),
               ),
             ),
           if (s != null)
             Positioned.fill(
-              child: _LoopingFrog(
-                key: ValueKey(s.frog),
-                asset: s.frog,
-                animation: _animationName,
+              child: RepaintBoundary(
+                child: _LoopingFrog(
+                  key: ValueKey(s.frog),
+                  asset: s.frog,
+                  animation: _animationName,
+                ),
               ),
             ),
           if (showOverlay)
@@ -228,7 +249,8 @@ class _LoopingFrog extends StatefulWidget {
   State<_LoopingFrog> createState() => _LoopingFrogState();
 }
 
-class _LoopingFrogState extends State<_LoopingFrog> {
+class _LoopingFrogState extends State<_LoopingFrog>
+    with WidgetsBindingObserver, ForegroundAware<_LoopingFrog> {
   static final Random _rng = Random();
 
   String? _current;
@@ -240,15 +262,30 @@ class _LoopingFrogState extends State<_LoopingFrog> {
     _current = widget.animation;
   }
 
-  void _onCompleted(String name) {
-    if (!mounted) return;
-    final gapMs = 2500 + _rng.nextInt(7500);
-    setState(() => _current = null);
+  void _scheduleNextPlay() {
     _timer?.cancel();
+    if (!foreground) return;
+    final gapMs = 2500 + _rng.nextInt(7500);
     _timer = Timer(Duration(milliseconds: gapMs), () {
       if (!mounted) return;
       setState(() => _current = widget.animation);
     });
+  }
+
+  void _onCompleted(String name) {
+    if (!mounted) return;
+    setState(() => _current = null);
+    _scheduleNextPlay();
+  }
+
+  @override
+  void onForegroundChanged(bool foreground) {
+    if (!foreground) {
+      _timer?.cancel();
+      _timer = null;
+    } else if (_current == null) {
+      _scheduleNextPlay();
+    }
   }
 
   @override
@@ -264,7 +301,7 @@ class _LoopingFrogState extends State<_LoopingFrog> {
       alignment: Alignment.center,
       fit: BoxFit.cover,
       animation: _current,
-      isPaused: false,
+      isPaused: !foreground,
       callback: _onCompleted,
     );
   }

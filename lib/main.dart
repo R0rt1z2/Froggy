@@ -9,17 +9,26 @@ import 'services/update_service.dart';
 import 'services/window_service.dart';
 import 'state/settings_controller.dart';
 import 'state/weather_controller.dart';
+import 'ui/foreground.dart';
 import 'ui/froggy_view.dart';
 import 'ui/settings_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  _budgetImageCache();
   runApp(const FroggyApp());
+}
+
+void _budgetImageCache() {
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 12
+    ..maximumSizeBytes = 80 << 20;
 }
 
 @pragma('vm:entry-point')
 void dreamMain() {
   WidgetsFlutterBinding.ensureInitialized();
+  _budgetImageCache();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const FroggyApp(screensaver: true));
 }
@@ -33,7 +42,7 @@ class FroggyApp extends StatefulWidget {
   State<FroggyApp> createState() => _FroggyAppState();
 }
 
-class _FroggyAppState extends State<FroggyApp> {
+class _FroggyAppState extends State<FroggyApp> with WidgetsBindingObserver {
   late final SettingsController _settings;
   late final WeatherController _weather;
   bool _isTv = false;
@@ -47,6 +56,7 @@ class _FroggyAppState extends State<FroggyApp> {
       allowLocationPrompt: !widget.screensaver,
     );
     _settings.addListener(_applyWakelock);
+    WidgetsBinding.instance.addObserver(this);
     _detectTv();
     _boot();
 
@@ -56,6 +66,11 @@ class _FroggyAppState extends State<FroggyApp> {
     ]);
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _weather.setActive(isForeground(state));
   }
 
   void _applyWakelock() {
@@ -75,6 +90,7 @@ class _FroggyAppState extends State<FroggyApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _settings.removeListener(_applyWakelock);
     if (!widget.screensaver) WindowService.setKeepAwake(false);
     _weather.dispose();

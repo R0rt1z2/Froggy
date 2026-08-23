@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../models/settings.dart';
 import '../models/weather.dart';
+import 'foreground.dart';
 
 class WeatherOverlay extends StatefulWidget {
   const WeatherOverlay({
@@ -20,17 +21,32 @@ class WeatherOverlay extends StatefulWidget {
   State<WeatherOverlay> createState() => _WeatherOverlayState();
 }
 
-class _WeatherOverlayState extends State<WeatherOverlay> {
+class _WeatherOverlayState extends State<WeatherOverlay>
+    with WidgetsBindingObserver, ForegroundAware<WeatherOverlay> {
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
-      const Duration(seconds: 20),
-      (_) => setState(() {}),
-    );
+    _scheduleTick();
   }
+
+  void _scheduleTick() {
+    _timer?.cancel();
+    _timer = null;
+    if (!foreground) return;
+    final now = DateTime.now();
+    final next = DateTime(now.year, now.month, now.day, now.hour, now.minute)
+        .add(const Duration(minutes: 1));
+    _timer = Timer(next.difference(now) + const Duration(milliseconds: 50), () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleTick();
+    });
+  }
+
+  @override
+  void onForegroundChanged(bool foreground) => _scheduleTick();
 
   @override
   void dispose() {

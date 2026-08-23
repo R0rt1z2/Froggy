@@ -170,11 +170,6 @@ class FlareActor extends LeafRenderObjectWidget {
   }
 
   @override
-  void didUnmountRenderObject(covariant FlareActorRenderObject renderObject) {
-    renderObject.dispose();
-  }
-
-  @override
   void updateRenderObject(
       BuildContext context, covariant FlareActorRenderObject renderObject) {
     renderObject
@@ -299,6 +294,14 @@ class FlareActorRenderObject extends FlareRenderBox {
         _controller!.initialize(_artboard);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _controller?.isActive.removeListener(onControllerActiveChange);
+    _controller = null;
+    _completedCallback = null;
+    super.dispose();
   }
 
   bool get isPaused => _isPaused;

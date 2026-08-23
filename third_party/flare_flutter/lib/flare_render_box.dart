@@ -97,13 +97,24 @@ abstract class FlareRenderBox extends RenderBox {
 
   @override
   void detach() {
+    _stopFrameCallback();
+    _unload();
     super.detach();
-    dispose();
   }
 
+  @override
   void dispose() {
-    updatePlayState();
+    _stopFrameCallback();
     _unload();
+    super.dispose();
+  }
+
+  void _stopFrameCallback() {
+    _lastFrameTime = _notPlayingFlag;
+    if (_frameCallbackID != -1) {
+      SchedulerBinding.instance?.cancelFrameCallbackWithId(_frameCallbackID);
+      _frameCallbackID = -1;
+    }
   }
 
   /// Load a flare file from cache
@@ -267,10 +278,7 @@ abstract class FlareRenderBox extends RenderBox {
     if (isPlaying && attached) {
       markNeedsPaint();
     } else {
-      _lastFrameTime = _notPlayingFlag;
-      if (_frameCallbackID != -1) {
-        SchedulerBinding.instance?.cancelFrameCallbackWithId(_frameCallbackID);
-      }
+      _stopFrameCallback();
     }
   }
 
