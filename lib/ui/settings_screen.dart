@@ -238,9 +238,21 @@ class _Controls extends StatelessWidget {
             const Divider(),
             _sectionTitle(context, 'Display'),
             SwitchListTile(
+              title: const Text('Show clock'),
+              subtitle: const Text('Time at the bottom'),
+              value: s.showClock,
+              onChanged: settings.setShowClock,
+            ),
+            SwitchListTile(
               title: const Text('Show date'),
               value: s.showDate,
               onChanged: settings.setShowDate,
+            ),
+            SwitchListTile(
+              title: const Text('Show weather'),
+              subtitle: const Text('Temperature and conditions'),
+              value: s.showWeather,
+              onChanged: settings.setShowWeather,
             ),
             SwitchListTile(
               title: const Text('Show location'),

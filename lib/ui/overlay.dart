@@ -79,6 +79,10 @@ class _WeatherOverlayState extends State<WeatherOverlay>
   Widget build(BuildContext context) {
     final s = widget.settings;
     final w = widget.weather;
+    final showWeather = s.showWeather && w != null;
+    if (!s.showClock && !s.showDate && !showWeather) {
+      return const SizedBox.shrink();
+    }
     final stale = w?.isStale ?? false;
     final tempColor = stale ? Colors.white.withValues(alpha: 0.6) : Colors.white;
     final summaryColor =
@@ -106,19 +110,21 @@ class _WeatherOverlayState extends State<WeatherOverlay>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _time,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: timeSize,
-                      fontWeight: FontWeight.w300,
-                      height: 1.0,
-                      shadows: shadow,
+                  if (s.showClock)
+                    Text(
+                      _time,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: timeSize,
+                        fontWeight: FontWeight.w300,
+                        height: 1.0,
+                        shadows: shadow,
+                      ),
                     ),
-                  ),
                   if (s.showDate)
                     Padding(
-                      padding: EdgeInsets.only(top: pad * 0.15),
+                      padding: EdgeInsets.only(
+                          top: s.showClock ? pad * 0.15 : 0),
                       child: Text(
                         _date,
                         style: TextStyle(
@@ -129,7 +135,7 @@ class _WeatherOverlayState extends State<WeatherOverlay>
                         ),
                       ),
                     ),
-                  if (w != null)
+                  if (showWeather)
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.baseline,

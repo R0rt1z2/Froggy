@@ -59,6 +59,14 @@ class FroggyView extends StatelessWidget {
         : (dayPart == DayPart.sunset ? 0.5 : 0.0);
     final localTime = weather?.localTime ?? DateTime.now();
     final dim = settings.dimAt(nightFactor, localTime);
+    final showLoc = settings.showLocation &&
+        locationName != null &&
+        locationName!.isNotEmpty;
+    final hasTopContent =
+        showTopBar && ((!kIsWeb && settings.showStatus) || showLoc);
+    final hasBottomContent = settings.showClock ||
+        settings.showDate ||
+        (settings.showWeather && weather != null);
     return ColoredBox(
       color: Colors.black,
       child: Stack(
@@ -91,7 +99,7 @@ class FroggyView extends StatelessWidget {
                 ),
               ),
             ),
-          if (showOverlay)
+          if (showOverlay && hasTopContent)
             Positioned(
               top: 0,
               left: 0,
@@ -112,7 +120,7 @@ class FroggyView extends StatelessWidget {
                 ),
               ),
             ),
-          if (showOverlay)
+          if (showOverlay && hasBottomContent)
             Positioned(
               bottom: 0,
               left: 0,
@@ -134,7 +142,7 @@ class FroggyView extends StatelessWidget {
               ),
             ),
           if (showOverlay) WeatherOverlay(weather: weather, settings: settings),
-          if (showOverlay && showTopBar)
+          if (showOverlay && hasTopContent)
             Positioned(
               top: 0,
               left: 0,
@@ -145,9 +153,6 @@ class FroggyView extends StatelessWidget {
                   height: statusIcon * 1.5,
                   child: LayoutBuilder(
                     builder: (context, c) {
-                      final showLoc = settings.showLocation &&
-                          locationName != null &&
-                          locationName!.isNotEmpty;
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [

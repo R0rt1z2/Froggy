@@ -44,8 +44,14 @@ class SettingsController extends ChangeNotifier {
   Future<void> setCheckUpdatesOnStartup(bool v) =>
       _update(_settings.copyWith(checkUpdatesOnStartup: v));
 
+  Future<void> setShowClock(bool v) =>
+      _update(_settings.copyWith(showClock: v));
+
   Future<void> setShowDate(bool v) =>
       _update(_settings.copyWith(showDate: v));
+
+  Future<void> setShowWeather(bool v) =>
+      _update(_settings.copyWith(showWeather: v));
 
   Future<void> setNightDim(double v) =>
       _update(_settings.copyWith(nightDim: v));

@@ -52,7 +52,9 @@ class Settings {
   final double textShadow;
   final double overlayScale;
   final bool checkUpdatesOnStartup;
+  final bool showClock;
   final bool showDate;
+  final bool showWeather;
   final DimMode dimMode;
   final double nightDim;
   final int dimStart;
@@ -76,7 +78,9 @@ class Settings {
     this.textShadow = 0.8,
     this.overlayScale = 1.0,
     this.checkUpdatesOnStartup = true,
+    this.showClock = true,
     this.showDate = true,
+    this.showWeather = true,
     this.dimMode = DimMode.off,
     this.nightDim = 0.45,
     this.dimStart = 1320,
@@ -153,7 +157,9 @@ class Settings {
     double? textShadow,
     double? overlayScale,
     bool? checkUpdatesOnStartup,
+    bool? showClock,
     bool? showDate,
+    bool? showWeather,
     DimMode? dimMode,
     double? nightDim,
     int? dimStart,
@@ -180,7 +186,9 @@ class Settings {
       overlayScale: overlayScale ?? this.overlayScale,
       checkUpdatesOnStartup:
           checkUpdatesOnStartup ?? this.checkUpdatesOnStartup,
+      showClock: showClock ?? this.showClock,
       showDate: showDate ?? this.showDate,
+      showWeather: showWeather ?? this.showWeather,
       dimMode: dimMode ?? this.dimMode,
       nightDim: nightDim ?? this.nightDim,
       dimStart: dimStart ?? this.dimStart,
@@ -206,7 +214,9 @@ class Settings {
         'textShadow': textShadow,
         'overlayScale': overlayScale,
         'checkUpdatesOnStartup': checkUpdatesOnStartup,
+        'showClock': showClock,
         'showDate': showDate,
+        'showWeather': showWeather,
         'dimMode': dimMode.name,
         'nightDim': nightDim,
         'dimStart': dimStart,
@@ -236,7 +246,9 @@ class Settings {
         overlayScale: (j['overlayScale'] as num?)?.toDouble() ?? 1.0,
         checkUpdatesOnStartup:
             (j['checkUpdatesOnStartup'] as bool?) ?? true,
+        showClock: (j['showClock'] as bool?) ?? true,
         showDate: (j['showDate'] as bool?) ?? true,
+        showWeather: (j['showWeather'] as bool?) ?? true,
         dimMode: _enumByName(DimMode.values, j['dimMode'], DimMode.off),
         nightDim: (j['nightDim'] as num?)?.toDouble() ?? 0.45,
         dimStart: (j['dimStart'] as num?)?.toInt() ?? 1320,
