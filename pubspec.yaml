@@ -92,9 +92,11 @@ flutter:
       - assets/fields_day_snowy_bg.webp
       - assets/fields_day_sunny_bg.webp
       - assets/fields_morning_cloudy_bg.webp
+      - assets/fields_morning_rainy_bg.webp
       - assets/fields_morning_hazy_bg.webp
       - assets/fields_morning_snowy_bg.webp
       - assets/fields_morning_sunny_bg.webp
+      - assets/fields_night_cloudy_bg.webp
       - assets/fields_night_hazy_bg.webp
       - assets/fields_night_rainy_bg.webp
       - assets/fields_night_snowy_bg.webp
@@ -119,6 +121,7 @@ flutter:
       - assets/hill_night_rainy_bg.webp
       - assets/hill_night_snowy_bg.webp
       - assets/hill_night_sunny_bg.webp
+      - assets/hill_sunset_cloudy_bg.webp
       - assets/hill_sunset_hazy_bg.webp
       - assets/hill_sunset_rainy_bg.webp
       - assets/hill_sunset_snowy_bg.webp
