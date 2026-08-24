@@ -100,6 +100,9 @@ class SettingsController extends ChangeNotifier {
   Future<void> setShowLocationArrows(bool v) =>
       _update(_settings.copyWith(showLocationArrows: v));
 
+  Future<void> setLocationSwipe(LocationSwipe v) =>
+      _update(_settings.copyWith(locationSwipe: v));
+
   Future<void> cycleLocation({bool forward = true}) {
     if (!_settings.canCycleLocations) return Future.value();
     final next = _settings.nextLocationId(forward: forward);

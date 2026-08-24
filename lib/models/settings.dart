@@ -10,6 +10,8 @@ enum DimMode { off, auto, scheduled }
 
 enum LocationRotation { off, withScene, timed }
 
+enum LocationSwipe { off, horizontal, vertical }
+
 class SavedLocation {
   final String name;
   final double lat;
@@ -66,6 +68,7 @@ class Settings {
   final LocationRotation locationRotation;
   final int locationRotateMinutes;
   final bool showLocationArrows;
+  final LocationSwipe locationSwipe;
   final bool showStatus;
   final bool showWifi;
   final bool showBluetooth;
@@ -95,6 +98,7 @@ class Settings {
     this.locationRotation = LocationRotation.off,
     this.locationRotateMinutes = 15,
     this.showLocationArrows = false,
+    this.locationSwipe = LocationSwipe.horizontal,
     this.showStatus = true,
     this.showWifi = true,
     this.showBluetooth = true,
@@ -193,6 +197,7 @@ class Settings {
     LocationRotation? locationRotation,
     int? locationRotateMinutes,
     bool? showLocationArrows,
+    LocationSwipe? locationSwipe,
     bool? showStatus,
     bool? showWifi,
     bool? showBluetooth,
@@ -226,6 +231,7 @@ class Settings {
       locationRotateMinutes:
           locationRotateMinutes ?? this.locationRotateMinutes,
       showLocationArrows: showLocationArrows ?? this.showLocationArrows,
+      locationSwipe: locationSwipe ?? this.locationSwipe,
       showStatus: showStatus ?? this.showStatus,
       showWifi: showWifi ?? this.showWifi,
       showBluetooth: showBluetooth ?? this.showBluetooth,
@@ -257,6 +263,7 @@ class Settings {
         'locationRotation': locationRotation.name,
         'locationRotateMinutes': locationRotateMinutes,
         'showLocationArrows': showLocationArrows,
+        'locationSwipe': locationSwipe.name,
         'showStatus': showStatus,
         'showWifi': showWifi,
         'showBluetooth': showBluetooth,
@@ -294,6 +301,8 @@ class Settings {
         locationRotateMinutes:
             (j['locationRotateMinutes'] as num?)?.toInt() ?? 15,
         showLocationArrows: (j['showLocationArrows'] as bool?) ?? false,
+        locationSwipe: _enumByName(
+            LocationSwipe.values, j['locationSwipe'], LocationSwipe.horizontal),
         showStatus: (j['showStatus'] as bool?) ?? true,
         showWifi: (j['showWifi'] as bool?) ?? true,
         showBluetooth: (j['showBluetooth'] as bool?) ?? true,

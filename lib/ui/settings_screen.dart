@@ -395,8 +395,31 @@ class _Controls extends StatelessWidget {
             ),
             if (s.canCycleLocations) ...[
               ListTile(
+                title: const Text('Swipe to switch'),
+                subtitle: const Text('Gesture on the frog'),
+                trailing: DropdownButton<LocationSwipe>(
+                  value: s.locationSwipe,
+                  onChanged: (v) =>
+                      v == null ? null : settings.setLocationSwipe(v),
+                  items: const [
+                    DropdownMenuItem(
+                      value: LocationSwipe.horizontal,
+                      child: Text('Left / right'),
+                    ),
+                    DropdownMenuItem(
+                      value: LocationSwipe.vertical,
+                      child: Text('Up / down'),
+                    ),
+                    DropdownMenuItem(
+                      value: LocationSwipe.off,
+                      child: Text('Off'),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
                 title: const Text('Switch locations'),
-                subtitle: const Text('Swipe left or right on the frog'),
+                subtitle: const Text('Automatic rotation'),
                 trailing: DropdownButton<LocationRotation>(
                   value: s.locationRotation,
                   onChanged: (v) =>

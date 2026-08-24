@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'models/settings.dart';
 import 'services/system_status_service.dart';
 import 'services/update_service.dart';
 import 'services/window_service.dart';
@@ -255,6 +256,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _onSwipe(double velocity, {required bool forwardWhenNegative}) {
+    if (velocity.abs() < 200) return;
+    widget.weather.cycleLocation(
+      forward: forwardWhenNegative ? velocity < 0 : velocity > 0,
+    );
+  }
+
   void _openSettings(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) =>
@@ -302,6 +310,9 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, _) {
           if (!weather.ready) return const SplashScreen();
           final kiosk = settings.settings.kioskMode;
+          final swipe = weather.canCycleLocations
+              ? settings.settings.locationSwipe
+              : LocationSwipe.off;
           final overlayPad =
               (MediaQuery.sizeOf(context).height * 0.06).clamp(16.0, 32.0);
           return Listener(
@@ -320,11 +331,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: weather.cycleScene,
                 onDoubleTap: weather.refresh,
                 onLongPress: () => _openSettings(context),
-                onHorizontalDragEnd: (d) {
-                  final v = d.primaryVelocity ?? 0;
-                  if (v.abs() < 200) return;
-                  weather.cycleLocation(forward: v < 0);
-                },
+                onHorizontalDragEnd: swipe == LocationSwipe.horizontal
+                    ? (d) => _onSwipe(d.primaryVelocity ?? 0,
+                        forwardWhenNegative: true)
+                    : null,
+                onVerticalDragEnd: swipe == LocationSwipe.vertical
+                    ? (d) => _onSwipe(d.primaryVelocity ?? 0,
+                        forwardWhenNegative: false)
+                    : null,
                 child: RepaintBoundary(
                   child: FroggyView(
                     scene: weather.scene,
