@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/gestures.dart'
+    show kBackMouseButton, kForwardMouseButton;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -269,14 +271,16 @@ class _HomeScreenState extends State<HomeScreen> {
         k == LogicalKeyboardKey.contextMenu;
     final isScene = k == LogicalKeyboardKey.arrowLeft ||
         k == LogicalKeyboardKey.arrowRight;
-    final isRefresh = k == LogicalKeyboardKey.arrowUp ||
+    final isLocation = k == LogicalKeyboardKey.arrowUp ||
         k == LogicalKeyboardKey.arrowDown;
-    if (!isSelect && !isScene && !isRefresh) return KeyEventResult.ignored;
+    if (!isSelect && !isScene && !isLocation) return KeyEventResult.ignored;
     if (event is KeyDownEvent) {
       if (isSelect) {
         _openSettings(context);
       } else if (isScene) {
         widget.weather.cycleScene();
+      } else if (widget.weather.canCycleLocations) {
+        widget.weather.cycleLocation(forward: k == LogicalKeyboardKey.arrowDown);
       } else {
         widget.weather.refresh();
       }
@@ -300,13 +304,27 @@ class _HomeScreenState extends State<HomeScreen> {
           final kiosk = settings.settings.kioskMode;
           final overlayPad =
               (MediaQuery.sizeOf(context).height * 0.06).clamp(16.0, 32.0);
-          return Stack(
+          return Listener(
+            onPointerDown: (e) {
+              if (!weather.canCycleLocations) return;
+              if (e.buttons & kBackMouseButton != 0) {
+                weather.cycleLocation(forward: false);
+              } else if (e.buttons & kForwardMouseButton != 0) {
+                weather.cycleLocation(forward: true);
+              }
+            },
+            child: Stack(
             fit: StackFit.expand,
             children: [
               GestureDetector(
                 onTap: weather.cycleScene,
                 onDoubleTap: weather.refresh,
                 onLongPress: () => _openSettings(context),
+                onHorizontalDragEnd: (d) {
+                  final v = d.primaryVelocity ?? 0;
+                  if (v.abs() < 200) return;
+                  weather.cycleLocation(forward: v < 0);
+                },
                 child: RepaintBoundary(
                   child: FroggyView(
                     scene: weather.scene,
@@ -372,7 +390,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   _rotateHintDismissed == false &&
                   _isMobilePortrait(context))
                 _RotateHint(onDismiss: _dismissRotateHint),
+              if (!kiosk &&
+                  settings.settings.showLocationArrows &&
+                  weather.canCycleLocations)
+                _LocationArrows(
+                  onBack: () => weather.cycleLocation(forward: false),
+                  onForward: () => weather.cycleLocation(forward: true),
+                ),
             ],
+          ),
           );
         },
         ),
@@ -408,6 +434,75 @@ class ScreensaverScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _LocationArrows extends StatelessWidget {
+  const _LocationArrows({required this.onBack, required this.onForward});
+
+  final VoidCallback onBack;
+  final VoidCallback onForward;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _EdgeArrow(
+              icon: Icons.chevron_left,
+              tooltip: 'Previous location',
+              onPressed: onBack,
+            ),
+            _EdgeArrow(
+              icon: Icons.chevron_right,
+              tooltip: 'Next location',
+              onPressed: onForward,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EdgeArrow extends StatefulWidget {
+  const _EdgeArrow({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  State<_EdgeArrow> createState() => _EdgeArrowState();
+}
+
+class _EdgeArrowState extends State<_EdgeArrow> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 180),
+        opacity: _hover ? 0.85 : 0.22,
+        child: IconButton(
+          icon: Icon(widget.icon),
+          color: Colors.white,
+          iconSize: 44,
+          tooltip: widget.tooltip,
+          onPressed: widget.onPressed,
+        ),
       ),
     );
   }

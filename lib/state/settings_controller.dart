@@ -91,6 +91,30 @@ class SettingsController extends ChangeNotifier {
   Future<void> setRotateMinutes(int v) =>
       _update(_settings.copyWith(rotateMinutes: v));
 
+  Future<void> setLocationRotation(LocationRotation v) =>
+      _update(_settings.copyWith(locationRotation: v));
+
+  Future<void> setLocationRotateMinutes(int v) =>
+      _update(_settings.copyWith(locationRotateMinutes: v));
+
+  Future<void> setShowLocationArrows(bool v) =>
+      _update(_settings.copyWith(showLocationArrows: v));
+
+  Future<void> cycleLocation({bool forward = true}) {
+    if (!_settings.canCycleLocations) return Future.value();
+    final next = _settings.nextLocationId(forward: forward);
+    if (next == null) {
+      return _update(_settings.copyWith(
+        locationMode: LocationMode.automatic,
+        clearSelected: true,
+      ));
+    }
+    return _update(_settings.copyWith(
+      locationMode: LocationMode.manual,
+      selectedLocationId: next,
+    ));
+  }
+
   Future<void> setLocationMode(LocationMode mode) =>
       _update(_settings.copyWith(locationMode: mode));
 

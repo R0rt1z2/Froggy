@@ -8,6 +8,8 @@ enum LocationMode { automatic, manual }
 
 enum DimMode { off, auto, scheduled }
 
+enum LocationRotation { off, withScene, timed }
+
 class SavedLocation {
   final String name;
   final double lat;
@@ -61,6 +63,9 @@ class Settings {
   final int dimEnd;
   final int refreshMinutes;
   final int rotateMinutes;
+  final LocationRotation locationRotation;
+  final int locationRotateMinutes;
+  final bool showLocationArrows;
   final bool showStatus;
   final bool showWifi;
   final bool showBluetooth;
@@ -87,6 +92,9 @@ class Settings {
     this.dimEnd = 420,
     this.refreshMinutes = 20,
     this.rotateMinutes = 5,
+    this.locationRotation = LocationRotation.off,
+    this.locationRotateMinutes = 15,
+    this.showLocationArrows = false,
     this.showStatus = true,
     this.showWifi = true,
     this.showBluetooth = true,
@@ -135,6 +143,22 @@ class Settings {
       ? 'manual:${selected?.id ?? ''}'
       : 'auto';
 
+  List<String?> get locationCycle =>
+      [null, ...savedLocations.map((l) => l.id)];
+
+  bool get canCycleLocations => locationCycle.length > 1;
+
+  String? get currentLocationId =>
+      locationMode == LocationMode.automatic ? null : selected?.id;
+
+  String? nextLocationId({bool forward = true}) {
+    final ids = locationCycle;
+    if (ids.length < 2) return currentLocationId;
+    var i = ids.indexOf(currentLocationId);
+    if (i < 0) i = 0;
+    return ids[(i + (forward ? 1 : -1) + ids.length) % ids.length];
+  }
+
   double toDisplayTemp(double celsius) =>
       unit == TempUnit.fahrenheit ? celsius * 9 / 5 + 32 : celsius;
 
@@ -166,6 +190,9 @@ class Settings {
     int? dimEnd,
     int? refreshMinutes,
     int? rotateMinutes,
+    LocationRotation? locationRotation,
+    int? locationRotateMinutes,
+    bool? showLocationArrows,
     bool? showStatus,
     bool? showWifi,
     bool? showBluetooth,
@@ -195,6 +222,10 @@ class Settings {
       dimEnd: dimEnd ?? this.dimEnd,
       refreshMinutes: refreshMinutes ?? this.refreshMinutes,
       rotateMinutes: rotateMinutes ?? this.rotateMinutes,
+      locationRotation: locationRotation ?? this.locationRotation,
+      locationRotateMinutes:
+          locationRotateMinutes ?? this.locationRotateMinutes,
+      showLocationArrows: showLocationArrows ?? this.showLocationArrows,
       showStatus: showStatus ?? this.showStatus,
       showWifi: showWifi ?? this.showWifi,
       showBluetooth: showBluetooth ?? this.showBluetooth,
@@ -223,6 +254,9 @@ class Settings {
         'dimEnd': dimEnd,
         'refreshMinutes': refreshMinutes,
         'rotateMinutes': rotateMinutes,
+        'locationRotation': locationRotation.name,
+        'locationRotateMinutes': locationRotateMinutes,
+        'showLocationArrows': showLocationArrows,
         'showStatus': showStatus,
         'showWifi': showWifi,
         'showBluetooth': showBluetooth,
@@ -255,6 +289,11 @@ class Settings {
         dimEnd: (j['dimEnd'] as num?)?.toInt() ?? 420,
         refreshMinutes: (j['refreshMinutes'] as num?)?.toInt() ?? 20,
         rotateMinutes: (j['rotateMinutes'] as num?)?.toInt() ?? 5,
+        locationRotation: _enumByName(LocationRotation.values,
+            j['locationRotation'], LocationRotation.off),
+        locationRotateMinutes:
+            (j['locationRotateMinutes'] as num?)?.toInt() ?? 15,
+        showLocationArrows: (j['showLocationArrows'] as bool?) ?? false,
         showStatus: (j['showStatus'] as bool?) ?? true,
         showWifi: (j['showWifi'] as bool?) ?? true,
         showBluetooth: (j['showBluetooth'] as bool?) ?? true,

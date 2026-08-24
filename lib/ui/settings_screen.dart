@@ -393,6 +393,52 @@ class _Controls extends StatelessWidget {
               title: const Text('Add location'),
               onTap: () => _addLocation(context),
             ),
+            if (s.canCycleLocations) ...[
+              ListTile(
+                title: const Text('Switch locations'),
+                subtitle: const Text('Swipe left or right on the frog'),
+                trailing: DropdownButton<LocationRotation>(
+                  value: s.locationRotation,
+                  onChanged: (v) =>
+                      v == null ? null : settings.setLocationRotation(v),
+                  items: const [
+                    DropdownMenuItem(
+                      value: LocationRotation.off,
+                      child: Text('Manually'),
+                    ),
+                    DropdownMenuItem(
+                      value: LocationRotation.withScene,
+                      child: Text('With scene'),
+                    ),
+                    DropdownMenuItem(
+                      value: LocationRotation.timed,
+                      child: Text('On a timer'),
+                    ),
+                  ],
+                ),
+              ),
+              SwitchListTile(
+                title: const Text('Edge arrows'),
+                subtitle: const Text('Back / forward buttons at the sides'),
+                value: s.showLocationArrows,
+                onChanged: settings.setShowLocationArrows,
+              ),
+              if (s.locationRotation == LocationRotation.timed)
+                ListTile(
+                  title: const Text('Location rotation'),
+                  trailing: DropdownButton<int>(
+                    value: s.locationRotateMinutes,
+                    onChanged: (v) =>
+                        v == null ? null : settings.setLocationRotateMinutes(v),
+                    items: const [1, 5, 10, 15, 30, 60]
+                        .map((m) => DropdownMenuItem(
+                              value: m,
+                              child: Text('$m min'),
+                            ))
+                        .toList(),
+                  ),
+                ),
+            ],
             const Divider(),
             _sectionTitle(context, 'About'),
             if (!kIsWeb)

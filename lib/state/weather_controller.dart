@@ -47,6 +47,7 @@ class WeatherController extends ChangeNotifier {
   Timer? _refreshTimer;
   Timer? _tick;
   Timer? _sceneTimer;
+  Timer? _locationTimer;
   int _sceneIndex = 0;
   String _lastLocationKey = 'auto';
   String _lastIntervals = '';
@@ -91,7 +92,8 @@ class WeatherController extends ChangeNotifier {
 
   String _intervalsKey() {
     final s = _settings?.settings;
-    return '${s?.refreshMinutes}:${s?.rotateMinutes}';
+    return '${s?.refreshMinutes}:${s?.rotateMinutes}:'
+        '${s?.locationRotation.name}:${s?.locationRotateMinutes}';
   }
 
   void setActive(bool active) {
@@ -116,7 +118,22 @@ class WeatherController extends ChangeNotifier {
     _refreshTimer = Timer.periodic(refreshDur, (_) => refresh());
     final rot = _settings?.settings.rotateMinutes ?? sceneRotation.inMinutes;
     if (rot > 0) {
-      _sceneTimer = Timer.periodic(Duration(minutes: rot), (_) => cycleScene());
+      _sceneTimer = Timer.periodic(Duration(minutes: rot), (_) {
+        cycleScene();
+        if (_settings?.settings.locationRotation ==
+            LocationRotation.withScene) {
+          cycleLocation();
+        }
+      });
+    }
+    final settings = _settings;
+    if (settings != null &&
+        settings.settings.locationRotation == LocationRotation.timed) {
+      final lm = settings.settings.locationRotateMinutes;
+      if (lm > 0) {
+        _locationTimer =
+            Timer.periodic(Duration(minutes: lm), (_) => cycleLocation());
+      }
     }
   }
 
@@ -127,6 +144,8 @@ class WeatherController extends ChangeNotifier {
     _refreshTimer = null;
     _sceneTimer?.cancel();
     _sceneTimer = null;
+    _locationTimer?.cancel();
+    _locationTimer = null;
   }
 
   Future<void> refresh() async {
@@ -183,6 +202,13 @@ class WeatherController extends ChangeNotifier {
       _lastIntervals = iv;
       _startTimers();
     }
+  }
+
+  bool get canCycleLocations =>
+      _settings?.settings.canCycleLocations ?? false;
+
+  void cycleLocation({bool forward = true}) {
+    _settings?.cycleLocation(forward: forward);
   }
 
   void cycleScene() {
